@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City Bus Tracker - Live Tracking</title>
+    <meta name="description" content="Track buses in real-time. See live bus locations, arrival times, and route information." />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 1rem;
+        }
+
+        .header-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .back-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-title p {
+            opacity: 0.9;
+        }
+
+        .header-features {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pulse-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .feature-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .map-section {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .map-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .map-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .map-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .map-header p {
+            color: #6b7280;
+        }
+
+        .map-pin-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #3b82f6;
+        }
+
+        .map-container {
+            height: 400px;
+            position: relative;
+            background: linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 100%);
+            overflow: hidden;
+        }
+
+        .map-background {
+            position: absolute;
+            inset: 0;
+        }
+
+        /* Map elements */
+        .road {
+            position: absolute;
+            background: white;
+        }
+
+        .road-horizontal {
+            height: 8px;
+            left: 0;
+            right: 0;
+        }
+
+        .road-vertical {
+            width: 8px;
+            top: 0;
+            bottom: 0;
+        }
+
+        .park {
+            position: absolute;
+            background: #bbf7d0;
+            border-radius: 50%;
+        }
+
+        .water {
+            position: absolute;
+            background: #bae6fd;
+            border-radius: 12px;
+        }
+
+        .location-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+
+        .current-location {
+            width: 16px;
+            height: 16px;
+            background: #2563eb;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .destination-marker {
+            width: 24px;
+            height: 24px;
+            background: #dc2626;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .destination-marker svg {
+            width: 12px;
+            height: 12px;
+            fill: white;
+        }
+
+        .location-label {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .bus-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition: all 2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .bus-icon {
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 3s infinite;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .bus-icon:before {
+            content: '🚌';
+            font-size: 16px;
+        }
+
+        .bus-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .bus-marker:hover .bus-tooltip {
+            opacity: 1;
+        }
+
+        .route-path {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .route-line {
+            stroke: #3b82f6;
+            stroke-width: 3;
+            stroke-dasharray: 10, 5;
+            fill: none;
+            animation: dash 3s linear infinite;
+        }
+
+        .bus-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: slideIn 0.8s ease-out 0.1s both;
+        }
+
+        .bus-list-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .bus-list-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .zap-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #059669;
+        }
+
+        .bus-list-header p {
+            color: #6b7280;
+        }
+
+        .bus-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+            border: 2px solid transparent;
+        }
+
+        .bus-card:hover {
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .bus-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .bus-route {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-on-time { background: #dcfce7; color: #166534; }
+        .status-delayed { background: #fee2e2; color: #dc2626; }
+        .status-arriving { background: #dbeafe; color: #1e40af; }
+
+        .bus-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.875rem;
+        }
+
+        .detail-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #6b7280;
+        }
+
+        .detail-icon {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .occupancy-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .occupancy-track {
+            flex: 1;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .occupancy-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .occupancy-low { background: #10b981; }
+        .occupancy-medium { background: #f59e0b; }
+        .occupancy-high { background: #ef4444; }
+
+        .track-btn {
+            background: white;
+            color: #374151;
+            border: 2px solid #d1d5db;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .track-btn:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .action-primary {
+            background: #059669;
+            color: white;
+        }
+
+        .action-primary:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .action-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #d1d5db;
+        }
+
+        .action-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -30; }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-row {
+                flex-wrap: wrap;
+            }
+            
+            .header-features {
+                flex-wrap: wrap;
+            }
+            
+            .map-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-row">
+                <button class="back-btn" onclick="goBack()">
+                    <svg class="back-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                </button>
+                <div class="header-title">
+                    <h1>Live Bus Tracking</h1>
+                    <p id="destinationDisplay">Loading destination...</p>
+                </div>
+            </div>
+            
+            <div class="header-features">
+                <div class="feature-item">
+                    <div class="pulse-dot"></div>
+                    <span>Live Updates</span>
+                </div>
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                    </svg>
+                    <span>Real-time Tracking</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-grid">
+            <div class="map-section">
+                <div class="map-card">
+                    <div class="map-header">
+                        <h2>
+                            <svg class="map-pin-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            Live Map View
+                        </h2>
+                        <p id="mapDescription">Real-time bus positions and your route</p>
+                    </div>
+                    <div class="map-container">
+                        <div class="map-background">
+                            <!-- Roads -->
+                            <div class="road road-horizontal" style="top: 25%;"></div>
+                            <div class="road road-horizontal" style="top: 50%;"></div>
+                            <div class="road road-horizontal" style="top: 75%;"></div>
+                            <div class="road road-vertical" style="left: 25%;"></div>
+                            <div class="road road-vertical" style="left: 50%;"></div>
+                            <div class="road road-vertical" style="left: 75%;"></div>
+                            
+                            <!-- Parks -->
+                            <div class="park" style="top: 40px; left: 40px; width: 64px; height: 64px;"></div>
+                            <div class="park" style="bottom: 40px; right: 40px; width: 80px; height: 80px; border-radius: 8px;"></div>
+                            
+                            <!-- Water -->
+                            <div class="water" style="top: 33%; right: 20px; width: 96px; height: 48px;"></div>
+                        </div>
+
+                        <!-- Your Location -->
+                        <div class="location-marker" style="bottom: 25%; left: 25%;">
+                            <div class="current-location"></div>
+                            <div class="location-label">Your Location</div>
+                        </div>
+
+                        <!-- Destination -->
+                        <div class="location-marker" style="top: 25%; right: 25%;">
+                            <div class="destination-marker">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                            </div>
+                            <div class="location-label" id="destinationLabel">Destination</div>
+                        </div>
+
+                        <!-- Route Path -->
+                        <svg class="route-path" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path class="route-line" d="M 25 75 Q 50 50 75 25" />
+                        </svg>
+
+                        <!-- Buses -->
+                        <div id="busesContainer">
+                            <!-- Buses will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bus-list">
+                <div class="bus-list-header">
+                    <h2>
+                        <svg class="zap-icon" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M13 0L0 13h7v11l13-13h-7z"/>
+                        </svg>
+                        Available Buses
+                    </h2>
+                    <p>Buses heading to your destination</p>
+                </div>
+
+                <div id="busListContainer">
+                    <!-- Bus cards will be populated by JavaScript -->
+                </div>
+
+                <div class="quick-actions">
+                    <button class="action-btn action-primary">
+                        Set Alert for Next Bus
+                    </button>
+                    <button class="action-btn action-secondary">
+                        View All Routes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let buses = [
+            {
+                id: "BUS-001",
+                route: "Route 15",
+                position: { x: 20, y: 30 },
+                eta: "3 min",
+                occupancy: 65,
+                status: "on-time"
+            },
+            {
+                id: "BUS-002", 
+                route: "Route 8",
+                position: { x: 45, y: 60 },
+                eta: "8 min",
+                occupancy: 40,
+                status: "arriving"
+            },
+            {
+                id: "BUS-003",
+                route: "Route 22",
+                position: { x: 70, y: 25 },
+                eta: "12 min",
+                occupancy: 85,
+                status: "delayed"
+            },
+            {
+                id: "BUS-004",
+                route: "Express 1",
+                position: { x: 15, y: 80 },
+                eta: "15 min",
+                occupancy: 30,
+                status: "on-time"
+            }
+        ];
+
+        let selectedDestination = null;
+
+        function initializePage() {
+            // Load destination from localStorage
+            const storedDestination = localStorage.getItem('selectedDestination');
+            if (storedDestination) {
+                selectedDestination = JSON.parse(storedDestination);
+                document.getElementById('destinationDisplay').textContent = `To: ${selectedDestination.name}`;
+                document.getElementById('mapDescription').textContent = `Real-time bus positions and your route to ${selectedDestination.name}`;
+                document.getElementById('destinationLabel').textContent = selectedDestination.name;
+            }
+
+            renderBuses();
+            renderBusList();
+            startBusAnimation();
+        }
+
+        function renderBuses() {
+            const container = document.getElementById('busesContainer');
+            container.innerHTML = '';
+
+            buses.forEach(bus => {
+                const busElement = document.createElement('div');
+                busElement.className = 'bus-marker';
+                busElement.style.left = `${bus.position.x}%`;
+                busElement.style.top = `${bus.position.y}%`;
+                
+                busElement.innerHTML = `
+                    <div class="bus-icon"></div>
+                    <div class="bus-tooltip">${bus.route} - ${bus.eta}</div>
+                `;
+                
+                container.appendChild(busElement);
+            });
+        }
+
+        function renderBusList() {
+            const container = document.getElementById('busListContainer');
+            container.innerHTML = '';
+
+            buses.forEach((bus, index) => {
+                const busCard = document.createElement('div');
+                busCard.className = 'bus-card';
+                busCard.style.animationDelay = `${index * 0.1}s`;
+                
+                const occupancyClass = getOccupancyClass(bus.occupancy);
+                const statusClass = getStatusClass(bus.status);
+                
+                busCard.innerHTML = `
+                    <div class="bus-card-header">
+                        <span class="bus-route">${bus.route}</span>
+                        <span class="status-badge ${statusClass}">
+                            ${bus.status.replace("-", " ")}
+                        </span>
+                    </div>
+                    
+                    <div class="bus-details">
+                        <div class="detail-row">
+                            <span class="detail-label">
+                                <svg class="detail-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>
+                                </svg>
+                                ETA
+                            </span>
+                            <span class="detail-value">${bus.eta}</span>
+                        </div>
+                        
+                        <div class="detail-row">
+                            <span class="detail-label">
+                                <svg class="detail-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A2.992 2.992 0 0 0 16.5 6.5h-9A2.992 2.992 0 0 0 4.04 8.37L1.5 16H4v6h2v-6h8v6h2z"/>
+                                </svg>
+                                Occupancy
+                            </span>
+                            <div class="occupancy-bar">
+                                <div class="occupancy-track">
+                                    <div class="occupancy-fill ${occupancyClass}" style="width: ${bus.occupancy}%"></div>
+                                </div>
+                                <span class="detail-value">${bus.occupancy}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="track-btn">Track This Bus</button>
+                `;
+                
+                container.appendChild(busCard);
+            });
+        }
+
+        function getOccupancyClass(occupancy) {
+            if (occupancy < 50) return "occupancy-low";
+            if (occupancy < 80) return "occupancy-medium";
+            return "occupancy-high";
+        }
+
+        function getStatusClass(status) {
+            return `status-${status}`;
+        }
+
+        function startBusAnimation() {
+            setInterval(() => {
+                buses = buses.map(bus => ({
+                    ...bus,
+                    position: {
+                        x: Math.max(5, Math.min(95, bus.position.x + (Math.random() - 0.5) * 4)),
+                        y: Math.max(5, Math.min(95, bus.position.y + (Math.random() - 0.5) * 4))
+                    }
+                }));
+                renderBuses();
+            }, 3000);
+        }
+
+        function goBack() {
+            window.location.href = 'search.html';
+        }
+
+        // Initialize page when loaded
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>

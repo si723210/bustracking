@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart City Bus Tracker - Enable Location</title>
+    <meta name="description" content="Track buses in real-time for small cities. Enable location access to start tracking." />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .hero-content {
+            color: white;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content .accent {
+            color: #fbbf24;
+            display: block;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+            max-width: 400px;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .feature-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            fill: currentColor;
+        }
+
+        .location-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            animation: slideIn 0.8s ease-out 0.2s both;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .location-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: bounce 2s infinite;
+        }
+
+        .location-icon svg {
+            width: 2rem;
+            height: 2rem;
+            fill: white;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-description {
+            color: #6b7280;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .enable-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .enable-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .enable-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .privacy-note {
+            margin-top: 1.5rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .privacy-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .privacy-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #059669;
+            border-radius: 50%;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .features {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero-content">
+            <h1>
+                Smart City
+                <span class="accent">Bus Tracker</span>
+            </h1>
+            <p>Real-time bus tracking for your daily commute. Never miss your ride again!</p>
+            
+            <div class="features">
+                <div class="feature">
+                    <svg class="feature-icon" viewBox="0 0 24 24">
+                        <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                    </svg>
+                    <span>Live Tracking</span>
+                </div>
+                <div class="feature">
+                    <svg class="feature-icon" viewBox="0 0 24 24">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    <span>Route Planning</span>
+                </div>
+                <div class="feature">
+                    <svg class="feature-icon" viewBox="0 0 24 24">
+                        <path d="M17 2H7C5.9 2 5 2.9 5 4v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM7 4h10v16H7V4z"/>
+                    </svg>
+                    <span>Mobile Friendly</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="location-card">
+            <div class="location-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </div>
+            
+            <h2 class="card-title">Enable Location Access</h2>
+            <p class="card-description">
+                We need your location to show nearby buses and provide accurate tracking information.
+            </p>
+            
+            <div id="errorMessage" class="error-message" style="display: none;">
+                Location access denied. Please enable location services and try again.
+            </div>
+            
+            <button id="enableBtn" class="enable-btn" onclick="enableLocation()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Enable Location Access
+            </button>
+            
+            <div class="privacy-note">
+                <p>Your location data is used only for tracking buses and is not stored.</p>
+                <div class="privacy-indicator">
+                    <div class="privacy-dot"></div>
+                    <span>Secure & Private</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function enableLocation() {
+            const btn = document.getElementById('enableBtn');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="spinner"></div>
+                Detecting Location...
+            `;
+            errorMsg.style.display = 'none';
+
+            // Simulate location request for demo
+            setTimeout(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            // Success - redirect to search page
+                            window.location.href = 'search.html';
+                        },
+                        function(error) {
+                            // Error - show error message
+                            btn.disabled = false;
+                            btn.innerHTML = `
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                Enable Location Access
+                            `;
+                            errorMsg.style.display = 'block';
+                        }
+                    );
+                } else {
+                    // Browser doesn't support geolocation - for demo, just proceed
+                    window.location.href = 'search.html';
+                }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
